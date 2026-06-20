@@ -1,0 +1,324 @@
+schema_version: "1.0"
+
+task:
+  id: "DF-001"
+  type: "greenfield_backend_feature"
+  title: "Implement Business Dictionary Service API"
+  priority: "medium"
+
+references:
+  jira_issue: "DARK-101"
+  requirements_file: "REQUIREMENTS.md"
+  architecture_file: "ARCHITECTURE.md"
+
+repository:
+  target_repository_name: "business-dictionary"
+  target_repository_url: "REPLACE_WITH_YOUR_REPO_URL"
+  base_branch: "main"
+  target_branch: "ai/DF-001-business-dictionary"
+  working_directory: "."
+
+repository_structure:
+  required_directories:
+    - "src/main/java"
+    - "src/test/java"
+    - "src/main/resources"
+    - "src/main/resources/db/migration"
+  required_files:
+    - "pom.xml"
+    - "README.md"
+
+scope:
+  allowed_paths:
+    - "src/main/java/**"
+    - "src/test/java/**"
+    - "src/main/resources/**"
+    - "pom.xml"
+    - "mvnw"
+    - "mvnw.cmd"
+    - "README.md"
+  forbidden_paths:
+    - ".github/**"
+    - "deployment/**"
+    - "infrastructure/**"
+    - "k8s/**"
+    - "helm/**"
+
+technology:
+  language: "Java"
+  java_version: "21"
+  framework: "Spring Boot"
+  spring_boot_version: "3.x"
+  build_tool: "Maven"
+  database: "PostgreSQL"
+  migration_tool: "Flyway"
+  test_frameworks:
+    - "JUnit 5"
+    - "Mockito"
+    - "Testcontainers"
+
+implementation_contract:
+  package_root: "com.epam.businessdictionary"
+  architecture_style: "layered"
+
+  packages:
+    - name: "api"
+      purpose: "REST controllers, request DTOs, response DTOs, API error model"
+    - name: "application"
+      purpose: "Business services, transactions, business exceptions"
+    - name: "domain"
+      purpose: "JPA entity and domain data representation"
+    - name: "infrastructure"
+      purpose: "Spring Data repositories and persistence adapters"
+    - name: "config"
+      purpose: "REST exception handling and cross-cutting configuration"
+
+  required_components:
+    - name: "BusinessDictionaryApplication"
+      package: "root"
+      responsibility: "Spring Boot application entry point"
+
+    - name: "DictionaryController"
+      package: "api"
+      responsibility: "Expose dictionary REST endpoints"
+
+    - name: "CreateTermRequest"
+      package: "api"
+      responsibility: "Represent create term request payload"
+
+    - name: "UpdateDefinitionRequest"
+      package: "api"
+      responsibility: "Represent update definition request payload"
+
+    - name: "DictionaryTermResponse"
+      package: "api"
+      responsibility: "Represent dictionary term response payload"
+
+    - name: "ErrorResponse"
+      package: "api"
+      responsibility: "Represent API error response"
+
+    - name: "DictionaryService"
+      package: "application"
+      responsibility: "Execute dictionary business logic and transaction boundaries"
+
+    - name: "DuplicateTermException"
+      package: "application"
+      responsibility: "Represent duplicate term business error"
+
+    - name: "TermNotFoundException"
+      package: "application"
+      responsibility: "Represent missing term business error"
+
+    - name: "DictionaryEntry"
+      package: "domain"
+      responsibility: "Represent dictionary persistence entity"
+
+    - name: "DictionaryRepository"
+      package: "infrastructure"
+      responsibility: "Persist and query dictionary entries"
+
+    - name: "RestExceptionHandler"
+      package: "config"
+      responsibility: "Map exceptions to HTTP responses"
+
+api_contract:
+  base_path: "/api/v1/dictionary"
+
+  endpoints:
+    - operation: "create_term"
+      method: "POST"
+      path: "/terms"
+      success_status: 201
+      error_statuses:
+        - 400
+        - 409
+
+    - operation: "read_term"
+      method: "GET"
+      path: "/terms/{term}"
+      success_status: 200
+      error_statuses:
+        - 404
+
+    - operation: "update_definition"
+      method: "PUT"
+      path: "/terms/{term}"
+      success_status: 200
+      error_statuses:
+        - 400
+        - 404
+
+  request_models:
+    CreateTermRequest:
+      fields:
+        - name: "term"
+          type: "string"
+          required: true
+          validation:
+            not_blank: true
+            max_length: 100
+
+        - name: "definition"
+          type: "string"
+          required: true
+          validation:
+            not_blank: true
+            max_length: 1000
+
+    UpdateDefinitionRequest:
+      fields:
+        - name: "definition"
+          type: "string"
+          required: true
+          validation:
+            not_blank: true
+            max_length: 1000
+
+  response_models:
+    DictionaryTermResponse:
+      fields:
+        - name: "id"
+          type: "uuid"
+        - name: "term"
+          type: "string"
+        - name: "definition"
+          type: "string"
+        - name: "createdAt"
+          type: "timestamp"
+        - name: "updatedAt"
+          type: "timestamp"
+
+    ErrorResponse:
+      fields:
+        - name: "code"
+          type: "string"
+        - name: "message"
+          type: "string"
+        - name: "details"
+          type: "array"
+          required: false
+
+error_contract:
+  errors:
+    - scenario: "Invalid request"
+      http_status: 400
+      code: "VALIDATION_ERROR"
+    - scenario: "Duplicate term"
+      http_status: 409
+      code: "DUPLICATE_TERM"
+    - scenario: "Term not found"
+      http_status: 404
+      code: "TERM_NOT_FOUND"
+    - scenario: "Unexpected error"
+      http_status: 500
+      code: "INTERNAL_ERROR"
+
+database_contract:
+  migration_required: true
+  migration_path: "src/main/resources/db/migration/V1__create_business_dictionary_table.sql"
+  table: "business_dictionary"
+
+  columns:
+    - name: "id"
+      type: "UUID"
+      nullable: false
+      primary_key: true
+
+    - name: "term"
+      type: "VARCHAR(100)"
+      nullable: false
+
+    - name: "normalized_term"
+      type: "VARCHAR(100)"
+      nullable: false
+      unique: true
+
+    - name: "definition"
+      type: "VARCHAR(1000)"
+      nullable: false
+
+    - name: "created_at"
+      type: "TIMESTAMP WITH TIME ZONE"
+      nullable: false
+
+    - name: "updated_at"
+      type: "TIMESTAMP WITH TIME ZONE"
+      nullable: false
+
+  indexes:
+    - name: "ux_business_dictionary_normalized_term"
+      columns:
+        - "normalized_term"
+      unique: true
+
+business_rules:
+  - "Term is mandatory."
+  - "Definition is mandatory."
+  - "Term must be unique case-insensitively."
+  - "Term lookup must be case-insensitive."
+  - "createdAt is set only during creation."
+  - "updatedAt changes when definition is updated."
+  - "Do not implement delete or list endpoints."
+
+quality_gates:
+  build_command: "./mvnw clean verify"
+  test_command: "./mvnw test"
+
+  required_checks:
+    - "compilation"
+    - "unit_tests"
+    - "controller_tests"
+    - "repository_or_integration_tests"
+
+testing_contract:
+  required_tests:
+    - name: "DictionaryServiceTest"
+      cases:
+        - "creates term successfully"
+        - "rejects duplicate term case-insensitively"
+        - "reads existing term"
+        - "updates definition"
+        - "returns not found for missing term"
+
+    - name: "DictionaryControllerTest"
+      cases:
+        - "returns 201 for valid create request"
+        - "returns 409 for duplicate term"
+        - "returns 200 for existing term lookup"
+        - "returns 404 for missing term lookup"
+        - "returns 200 for valid update request"
+        - "returns 400 for invalid request"
+
+    - name: "DictionaryRepositoryTest"
+      cases:
+        - "persists dictionary entry"
+        - "finds entry by normalized term"
+        - "enforces unique normalized term"
+
+execution:
+  max_iterations: 3
+  timeout_minutes: 45
+  open_pull_request: true
+
+constraints:
+  - "Do not implement delete endpoint."
+  - "Do not implement list endpoint."
+  - "Do not implement authentication."
+  - "Do not implement role management."
+  - "Do not modify deployment, Kubernetes, Helm, or CI files."
+
+definition_of_done:
+  - "Implementation matches ARCHITECTURE.md."
+  - "All acceptance criteria from REQUIREMENTS.md are satisfied."
+  - "POST /api/v1/dictionary/terms is implemented."
+  - "GET /api/v1/dictionary/terms/{term} is implemented."
+  - "PUT /api/v1/dictionary/terms/{term} is implemented."
+  - "Database migration is created."
+  - "Validation rules are enforced."
+  - "Duplicate terms return HTTP 409."
+  - "Missing terms return HTTP 404."
+  - "Tests are implemented and passing."
+  - "Build command passes."
+  - "No forbidden paths are modified."
+  - "Pull request is opened."
