@@ -12,8 +12,10 @@ references:
   architecture_file: "ARCHITECTURE.md"
 
 repository:
-  target_repository_name: "business-dictionary"
-  target_repository_url: "REPLACE_WITH_YOUR_REPO_URL"
+  provider: "github"
+  owner: "edgarkirk"
+  name: "business-dictionary"
+  target_repository_url: "https://github.com/edgarkirk/business-dictionary.git"
   base_branch: "main"
   target_branch: "ai/DF-001-business-dictionary"
   working_directory: "."
