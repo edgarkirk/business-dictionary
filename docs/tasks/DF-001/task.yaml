@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.2"
 
 task:
   id: "DF-001"
@@ -12,8 +12,10 @@ references:
   architecture_file: "ARCHITECTURE.md"
 
 repository:
-  target_repository_name: "business-dictionary"
-  target_repository_url: "REPLACE_WITH_YOUR_REPO_URL"
+  provider: "github"
+  owner: "edgarkirk"
+  name: "business-dictionary"
+  target_repository_url: "https://github.com/edgarkirk/business-dictionary.git"
   base_branch: "main"
   target_branch: "ai/DF-001-business-dictionary"
   working_directory: "."
@@ -38,6 +40,10 @@ scope:
     - "mvnw.cmd"
     - "README.md"
   forbidden_paths:
+    - "target/**"
+    - "AGENTS.md"
+    - ".agents/**"
+    - ".openhands/**"
     - ".github/**"
     - "deployment/**"
     - "infrastructure/**"
@@ -65,7 +71,9 @@ implementation_contract:
     - name: "api"
       purpose: "REST controllers, request DTOs, response DTOs, API error model"
     - name: "application"
-      purpose: "Business services, transactions, business exceptions"
+      purpose: "Business service interface and implementation, transaction boundaries"
+    - name: "application.exception"
+      purpose: "Business exception classes thrown by the application layer"
     - name: "domain"
       purpose: "JPA entity and domain data representation"
     - name: "infrastructure"
@@ -84,43 +92,51 @@ implementation_contract:
 
     - name: "CreateTermRequest"
       package: "api"
-      responsibility: "Represent create term request payload"
+      responsibility: "Request DTO for creating a term"
 
     - name: "UpdateDefinitionRequest"
       package: "api"
-      responsibility: "Represent update definition request payload"
+      responsibility: "Request DTO for updating a definition"
 
     - name: "DictionaryTermResponse"
       package: "api"
-      responsibility: "Represent dictionary term response payload"
+      responsibility: "Response DTO for a dictionary term"
 
     - name: "ErrorResponse"
       package: "api"
-      responsibility: "Represent API error response"
+      responsibility: "Response DTO for API errors"
 
     - name: "DictionaryService"
       package: "application"
-      responsibility: "Execute dictionary business logic and transaction boundaries"
+      responsibility: "Interface defining dictionary business operations"
+
+    - name: "DictionaryServiceImpl"
+      package: "application"
+      responsibility: "Concrete implementation of DictionaryService"
 
     - name: "DuplicateTermException"
-      package: "application"
-      responsibility: "Represent duplicate term business error"
+      package: "application.exception"
+      responsibility: "Thrown when a term already exists"
 
     - name: "TermNotFoundException"
-      package: "application"
-      responsibility: "Represent missing term business error"
+      package: "application.exception"
+      responsibility: "Thrown when a requested term does not exist"
 
     - name: "DictionaryEntry"
       package: "domain"
-      responsibility: "Represent dictionary persistence entity"
+      responsibility: "JPA entity representing a dictionary entry with audited timestamps"
 
     - name: "DictionaryRepository"
       package: "infrastructure"
-      responsibility: "Persist and query dictionary entries"
+      responsibility: "Spring Data JPA repository; must expose findByNormalizedTerm(String) returning Optional<DictionaryEntry>"
+
+    - name: "JpaAuditingConfig"
+      package: "config"
+      responsibility: "Enables JPA auditing"
 
     - name: "RestExceptionHandler"
       package: "config"
-      responsibility: "Map exceptions to HTTP responses"
+      responsibility: "Maps exceptions to HTTP responses"
 
 api_contract:
   base_path: "/api/v1/dictionary"
@@ -257,8 +273,8 @@ business_rules:
   - "Definition is mandatory."
   - "Term must be unique case-insensitively."
   - "Term lookup must be case-insensitive."
-  - "createdAt is set only during creation."
-  - "updatedAt changes when definition is updated."
+  - "createdAt is set on creation and never changes."
+  - "updatedAt is updated on every modification."
   - "Do not implement delete or list endpoints."
 
 quality_gates:
@@ -276,6 +292,7 @@ testing_contract:
     - name: "DictionaryServiceTest"
       cases:
         - "creates term successfully"
+        - "normalizes term to lowercase before persisting"
         - "rejects duplicate term case-insensitively"
         - "reads existing term"
         - "updates definition"
@@ -288,16 +305,19 @@ testing_contract:
         - "returns 200 for existing term lookup"
         - "returns 404 for missing term lookup"
         - "returns 200 for valid update request"
-        - "returns 400 for invalid request"
+        - "returns 400 for blank term"
+        - "returns 400 for blank definition"
 
     - name: "DictionaryRepositoryTest"
       cases:
         - "persists dictionary entry"
         - "finds entry by normalized term"
         - "enforces unique normalized term"
+        - "persisted entry has non-null createdAt and updatedAt"
+        - "createdAt does not change on update; updatedAt changes on update"
 
 execution:
-  max_iterations: 3
+  max_iterations: 75
   timeout_minutes: 45
   open_pull_request: true
 
@@ -307,6 +327,7 @@ constraints:
   - "Do not implement authentication."
   - "Do not implement role management."
   - "Do not modify deployment, Kubernetes, Helm, or CI files."
+  - "All exception classes must reside in the application.exception package."
 
 definition_of_done:
   - "Implementation matches ARCHITECTURE.md."
@@ -318,6 +339,8 @@ definition_of_done:
   - "Validation rules are enforced."
   - "Duplicate terms return HTTP 409."
   - "Missing terms return HTTP 404."
+  - "DictionaryService is an interface; DictionaryServiceImpl implements it."
+  - "All exceptions are in the com.epam.businessdictionary.application.exception package."
   - "Tests are implemented and passing."
   - "Build command passes."
   - "No forbidden paths are modified."
