@@ -1,0 +1,8 @@
+AGENTS.md
+.agents/**
+.openhands/**
+.github/**
+deployment/**
+infrastructure/**
+k8s/**
+helm/**

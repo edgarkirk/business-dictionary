@@ -1,0 +1,3 @@
+/workspace/repo/src/test/java/com/epam/businessdictionary/api/DictionaryControllerTest.java
+/workspace/repo/src/test/java/com/epam/businessdictionary/application/DictionaryServiceTest.java
+/workspace/repo/src/test/java/com/epam/businessdictionary/infrastructure/DictionaryRepositoryTest.java

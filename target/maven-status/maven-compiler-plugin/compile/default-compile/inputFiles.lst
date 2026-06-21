@@ -1,0 +1,12 @@
+/workspace/repo/src/main/java/com/epam/businessdictionary/BusinessDictionaryApplication.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/api/CreateTermRequest.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/api/DictionaryController.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/api/DictionaryTermResponse.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/api/ErrorResponse.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/api/UpdateDefinitionRequest.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/application/DictionaryService.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/application/DuplicateTermException.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/application/TermNotFoundException.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/config/RestExceptionHandler.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/domain/DictionaryEntry.java
+/workspace/repo/src/main/java/com/epam/businessdictionary/infrastructure/DictionaryRepository.java

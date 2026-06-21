@@ -1,0 +1,13 @@
+com/epam/businessdictionary/api/UpdateDefinitionRequest.class
+com/epam/businessdictionary/config/RestExceptionHandler.class
+com/epam/businessdictionary/domain/DictionaryEntry.class
+com/epam/businessdictionary/api/ErrorResponse$FieldError.class
+com/epam/businessdictionary/application/TermNotFoundException.class
+com/epam/businessdictionary/api/DictionaryController.class
+com/epam/businessdictionary/BusinessDictionaryApplication.class
+com/epam/businessdictionary/api/ErrorResponse.class
+com/epam/businessdictionary/api/CreateTermRequest.class
+com/epam/businessdictionary/api/DictionaryTermResponse.class
+com/epam/businessdictionary/application/DictionaryService.class
+com/epam/businessdictionary/application/DuplicateTermException.class
+com/epam/businessdictionary/infrastructure/DictionaryRepository.class

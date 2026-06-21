@@ -1,0 +1,3 @@
+com/epam/businessdictionary/application/DictionaryServiceTest.class
+com/epam/businessdictionary/api/DictionaryControllerTest.class
+com/epam/businessdictionary/infrastructure/DictionaryRepositoryTest.class
