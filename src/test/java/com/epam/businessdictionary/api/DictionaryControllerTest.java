@@ -8,6 +8,9 @@ import com.epam.businessdictionary.application.exception.DuplicateTermException;
 import com.epam.businessdictionary.application.exception.TermNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -128,6 +131,100 @@ class DictionaryControllerTest {
         mockMvc.perform(post("/api/v1/dictionary/terms")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    void returns400_forInvalidTerm(String term) throws Exception {
+        CreateTermRequest request = new CreateTermRequest();
+        request.setTerm(term);
+        request.setDefinition("A valid definition.");
+
+        mockMvc.perform(post("/api/v1/dictionary/terms")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    void returns400_forInvalidDefinitionOnCreate(String definition) throws Exception {
+        CreateTermRequest request = new CreateTermRequest();
+        request.setTerm("Valid Term");
+        request.setDefinition(definition);
+
+        mockMvc.perform(post("/api/v1/dictionary/terms")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void returns400_forOversizedTerm() throws Exception {
+        CreateTermRequest request = new CreateTermRequest();
+        request.setTerm("A".repeat(101));
+        request.setDefinition("A valid definition.");
+
+        mockMvc.perform(post("/api/v1/dictionary/terms")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void returns400_forOversizedDefinition() throws Exception {
+        CreateTermRequest request = new CreateTermRequest();
+        request.setTerm("Valid Term");
+        request.setDefinition("A".repeat(1001));
+
+        mockMvc.perform(post("/api/v1/dictionary/terms")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void returns404_forMissingTermOnUpdate() throws Exception {
+        UpdateDefinitionRequest request = new UpdateDefinitionRequest();
+        request.setDefinition("New definition.");
+
+        when(dictionaryService.updateDefinition(eq("NonExistent"), any(UpdateDefinitionRequest.class)))
+                .thenThrow(new TermNotFoundException("NonExistent"));
+
+        mockMvc.perform(put("/api/v1/dictionary/terms/NonExistent")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("TERM_NOT_FOUND"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    void returns400_forInvalidDefinitionOnUpdate(String definition) throws Exception {
+        UpdateDefinitionRequest request = new UpdateDefinitionRequest();
+        request.setDefinition(definition);
+
+        mockMvc.perform(put("/api/v1/dictionary/terms/BoundedContext")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void returns400_forMalformedRequestBody() throws Exception {
+        mockMvc.perform(post("/api/v1/dictionary/terms")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{invalid json"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }

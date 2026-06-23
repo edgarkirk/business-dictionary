@@ -111,6 +111,17 @@ class DictionaryServiceTest {
                 .isInstanceOf(TermNotFoundException.class);
     }
 
+    @Test
+    void throwsTermNotFoundException_whenUpdatingNonExistentTerm() {
+        when(repository.findByNormalizedTerm("unknown")).thenReturn(Optional.empty());
+
+        UpdateDefinitionRequest request = new UpdateDefinitionRequest();
+        request.setDefinition("New definition.");
+
+        assertThatThrownBy(() -> service.updateDefinition("Unknown", request))
+                .isInstanceOf(TermNotFoundException.class);
+    }
+
     private CreateTermRequest createTermRequest(String term, String definition) {
         CreateTermRequest request = new CreateTermRequest();
         request.setTerm(term);

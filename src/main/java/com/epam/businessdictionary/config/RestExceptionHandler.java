@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.util.List;
 
@@ -34,6 +35,12 @@ public class RestExceptionHandler {
                 .map(fe -> new ErrorResponse.FieldError(fe.getField(), fe.getDefaultMessage()))
                 .toList();
         return new ErrorResponse("VALIDATION_ERROR", "Request validation failed", details);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        return new ErrorResponse("VALIDATION_ERROR", "Malformed or missing request body");
     }
 
     @ExceptionHandler(Exception.class)
