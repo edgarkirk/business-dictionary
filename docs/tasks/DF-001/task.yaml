@@ -287,6 +287,7 @@ business_rules:
 quality_gates:
   build_command: "./mvnw clean verify"
   test_command: "./mvnw test"
+  static_analysis_command: "./mvnw checkstyle:check spotbugs:check --no-transfer-progress -q"
 
   required_checks:
     - "compilation"
