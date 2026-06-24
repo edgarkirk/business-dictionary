@@ -11,284 +11,94 @@
 | Owner | Architecture Agent |
 | Status | Ready for Development |
 
-## 2. Requirement References
+## 2. References
 
-- `REQUIREMENTS.md`
+- Business requirements: `REQUIREMENTS.md`
+- Machine-readable contract (components, API, DB schema, test scenarios): `task.yaml`
 
 ## 3. Scope
 
-Implement a Spring Boot backend service for creating, reading, and updating business dictionary terms.
-
-The service must expose REST endpoints, validate input, persist terms in PostgreSQL, and enforce case-insensitive uniqueness.
+REST backend service for creating, reading, and updating business dictionary terms. Single deployable Spring Boot application backed by PostgreSQL. No UI, no authentication in this scope.
 
 ## 4. Technology Stack
 
-- Java 21
-- Spring Boot 3.x
-- Maven
-- PostgreSQL
-- Flyway
-- Spring Web
-- Spring Data JPA
-- Jakarta Bean Validation
-- JUnit 5
-- Mockito
-- Testcontainers
+| Concern | Choice |
+|---|---|
+| Runtime | Java 21, Spring Boot 3.x |
+| Build | Maven |
+| Database | PostgreSQL |
+| Schema versioning | Flyway |
+| Persistence | Spring Data JPA |
+| Input validation | Jakarta Bean Validation |
+| Testing | JUnit 5, Mockito, Testcontainers |
 
-## 5. Architecture Pattern
+## 5. Layer Architecture
 
-Use standard layered architecture:
+Standard layered architecture with strict one-direction dependency flow:
 
-```text
-Controller -> Service -> Repository -> Database
 ```
-
-Layer responsibilities:
+REST Client → Controller → Service → Repository → Database
+```
 
 | Layer | Responsibility |
 |---|---|
-| Controller | HTTP request handling, validation trigger, response mapping |
-| Service | Business rules, transaction boundaries, orchestration |
-| Repository | Persistence access |
-| Domain | Persistence entity and domain data representation |
-| Config | Cross-cutting REST exception handling |
+| Controller | Accept HTTP requests, trigger validation, delegate to Service, map responses |
+| Service | Enforce business rules, own transaction boundaries, throw typed business exceptions |
+| Repository | Persistence operations only — no business logic |
+| Domain | Data entity — no dependencies on any application layer |
+| Config | Cross-cutting concerns: REST exception mapping, JPA auditing |
 
-## 6. Package Structure
+**Dependency rules:**
+- Controllers depend on Service interfaces, never on Repository types directly.
+- Services depend on Repository interfaces, never on Controller types.
+- Domain has no dependencies on Service, Controller, or Config layers.
+- Request/response DTOs do not cross the service boundary — the service operates on domain objects.
 
-```text
-com.epam.businessdictionary
-├── api
-│   ├── DictionaryController.java
-│   ├── CreateTermRequest.java
-│   ├── UpdateDefinitionRequest.java
-│   ├── DictionaryTermResponse.java
-│   └── ErrorResponse.java
-├── application
-│   ├── DictionaryService.java
-│   ├── DuplicateTermException.java
-│   └── TermNotFoundException.java
-├── domain
-│   └── DictionaryEntry.java
-├── infrastructure
-│   └── DictionaryRepository.java
-├── config
-│   └── RestExceptionHandler.java
-└── BusinessDictionaryApplication.java
-```
+## 6. API Surface
 
-## 7. API Contract
+Base path: `/api/v1/dictionary`
 
-Base path:
+| Method | Path | Success | Client Errors |
+|---|---|---:|---|
+| POST | `/terms` | 201 Created | 400 invalid input, 409 duplicate term |
+| GET | `/terms/{term}` | 200 OK | 404 not found |
+| PUT | `/terms/{term}` | 200 OK | 400 invalid input, 404 not found |
 
-```text
-/api/v1/dictionary
-```
+Exact request/response field definitions are in `task.yaml`.
 
-| Method | Path | Success | Errors | Description |
-|---|---|---:|---|---|
-| POST | `/terms` | 201 | 400, 409 | Create term |
-| GET | `/terms/{term}` | 200 | 404 | Read term by name |
-| PUT | `/terms/{term}` | 200 | 400, 404 | Update definition |
+## 7. Data Model
 
-## 8. Request and Response Models
+A single table stores dictionary entries. Each entry holds the original term alongside a normalized form used for case-insensitive uniqueness enforcement and lookup. Both values are persisted; lookup is always by normalized form.
 
-### CreateTermRequest
+Exact column definitions, types, and migration path are in `task.yaml`.
 
-```json
-{
-  "term": "Bounded Context",
-  "definition": "A boundary within which a domain model is consistent."
-}
-```
+## 8. Architecture Decisions
 
-### UpdateDefinitionRequest
+| Decision | Rationale |
+|---|---|
+| Layered architecture | Clear separation of concerns; each layer is independently testable |
+| Separate `normalized_term` column | Decouples uniqueness and lookup from database collation; portable and explicit |
+| UUID primary key | Avoids sequential ID exposure; safe for distributed or replicated environments |
+| `TIMESTAMP WITH TIME ZONE` for audit fields | Timezone-aware; eliminates conversion bugs across environments |
+| Flyway for schema migrations | Version-controlled, reproducible, and rollback-capable schema changes |
+| Service defined as interface + implementation | Enables controller-layer mocking in tests; enforces dependency inversion |
+| Global REST exception handler | Single mapping point from domain errors to HTTP responses; keeps service layer free of HTTP concerns |
+| Typed business exceptions | Explicit domain error semantics; exception type drives HTTP status mapping without string matching |
 
-```json
-{
-  "definition": "Updated business definition."
-}
-```
+## 9. Constraints
 
-### DictionaryTermResponse
+- No delete endpoint.
+- No list or search endpoint.
+- No authentication or authorization.
+- No role management.
+- Do not modify deployment, Kubernetes, Helm, or CI configuration.
 
-```json
-{
-  "id": "2e41580a-4369-4f7d-9a20-d4d8f0b87a68",
-  "term": "Bounded Context",
-  "definition": "A boundary within which a domain model is consistent.",
-  "createdAt": "2026-06-20T12:00:00Z",
-  "updatedAt": "2026-06-20T12:00:00Z"
-}
-```
+## 10. Definition of Done
 
-### ErrorResponse
-
-```json
-{
-  "code": "DUPLICATE_TERM",
-  "message": "Term already exists"
-}
-```
-
-Validation errors should use this shape:
-
-```json
-{
-  "code": "VALIDATION_ERROR",
-  "message": "Request validation failed",
-  "details": [
-    {
-      "field": "term",
-      "message": "must not be blank"
-    }
-  ]
-}
-```
-
-## 9. Database Design
-
-Table:
-
-```text
-business_dictionary
-```
-
-| Column | Type | Constraints |
-|---|---|---|
-| id | UUID | primary key |
-| term | VARCHAR(100) | not null |
-| normalized_term | VARCHAR(100) | not null, unique |
-| definition | VARCHAR(1000) | not null |
-| created_at | TIMESTAMP WITH TIME ZONE | not null |
-| updated_at | TIMESTAMP WITH TIME ZONE | not null |
-
-Migration path:
-
-```text
-src/main/resources/db/migration/V1__create_business_dictionary_table.sql
-```
-
-## 10. Validation Rules
-
-### term
-
-- Required.
-- Must not be blank.
-- Maximum length: 100 characters.
-
-### definition
-
-- Required.
-- Must not be blank.
-- Maximum length: 1000 characters.
-
-## 11. Business Logic
-
-### Create Term
-
-1. Validate request.
-2. Normalize term for uniqueness check.
-3. Reject if normalized term already exists.
-4. Create dictionary entry.
-5. Set `createdAt` and `updatedAt`.
-6. Persist entry.
-7. Return created response.
-
-### Read Term
-
-1. Normalize term from path variable.
-2. Search by normalized term.
-3. Return `404 Not Found` if missing.
-4. Return dictionary term response if found.
-
-### Update Definition
-
-1. Normalize term from path variable.
-2. Search by normalized term.
-3. Return `404 Not Found` if missing.
-4. Update definition.
-5. Update `updatedAt`.
-6. Persist entry.
-7. Return updated response.
-
-## 12. Error Handling
-
-| Scenario | HTTP Status | Error Code |
-|---|---:|---|
-| Invalid request | 400 | VALIDATION_ERROR |
-| Duplicate term | 409 | DUPLICATE_TERM |
-| Term not found | 404 | TERM_NOT_FOUND |
-| Unexpected error | 500 | INTERNAL_ERROR |
-
-## 13. Observability
-
-Required logs:
-
-- INFO when term creation starts.
-- INFO when term is created.
-- INFO when term lookup succeeds.
-- INFO when definition is updated.
-- WARN when duplicate term is rejected.
-- WARN when requested term is not found.
-
-Do not log sensitive data.
-
-## 14. Testing Requirements
-
-### DictionaryServiceTest
-
-Required cases:
-
-- Creates term successfully.
-- Rejects duplicate term case-insensitively.
-- Reads existing term.
-- Updates definition.
-- Returns not found for missing term.
-
-### DictionaryControllerTest
-
-Required cases:
-
-- Returns `201 Created` for valid create request.
-- Returns `409 Conflict` for duplicate term.
-- Returns `200 OK` for existing term lookup.
-- Returns `404 Not Found` for missing term lookup.
-- Returns `200 OK` for valid update request.
-- Returns `400 Bad Request` for invalid request.
-
-### DictionaryRepositoryTest
-
-Required cases:
-
-- Persists dictionary entry.
-- Finds entry by normalized term.
-- Enforces unique normalized term.
-
-## 15. Constraints
-
-- Do not implement delete endpoint.
-- Do not implement list endpoint.
-- Do not implement authentication.
-- Do not implement role management.
-- Do not modify deployment, Kubernetes, Helm, or CI files.
-
-## 16. Architecture Decisions
-
-- Use `normalized_term` for case-insensitive uniqueness.
-- Use UUID as primary key.
-- Use `TIMESTAMP WITH TIME ZONE` for timestamps.
-- Use Flyway for database migration.
-- Use service-layer transaction boundaries.
-- Use custom exceptions for business errors.
-- Use a global REST exception handler.
-- Keep generated service package independent from the factory implementation.
-
-## 17. Definition of Done
-
-- Required endpoints are implemented.
-- Database migration is added.
-- Validation rules are enforced.
-- Error handling is implemented.
-- Required tests are added.
-- Build passes.
-- Pull request is opened.
+- All three endpoints are implemented and return the correct HTTP status codes.
+- Case-insensitive uniqueness is enforced at the database level via the normalized term.
+- Input validation rejects invalid requests with HTTP 400.
+- All typed business exceptions map to the documented HTTP error codes.
+- Database migration exists and is applied on startup.
+- All tests pass with the configured build command.
+- Pull request is opened against the base branch.
