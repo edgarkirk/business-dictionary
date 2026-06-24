@@ -68,9 +68,20 @@ Exact request/response field definitions are in `task.yaml`.
 
 ## 7. Data Model
 
-A single table stores dictionary entries. Each entry holds the original term alongside a normalized form used for case-insensitive uniqueness enforcement and lookup. Both values are persisted; lookup is always by normalized form.
+A single table (`business_dictionary`) stores dictionary entries.
 
-Exact column definitions, types, and migration path are in `task.yaml`.
+| Column | Purpose |
+|---|---|
+| `id` | Surrogate primary key (UUID) |
+| `term` | Original term text as submitted by the user |
+| `normalized_term` | Lowercased term used for case-insensitive uniqueness checks and lookups |
+| `definition` | Term definition text |
+| `created_at` | Timestamp set once on creation, never changed |
+| `updated_at` | Timestamp updated on every write |
+
+Key design choice: `normalized_term` is stored as a separate column and carries a unique index. All lookups and duplicate checks operate on `normalized_term`, not `term`. This decouples uniqueness enforcement from database collation settings.
+
+Exact column types, constraints, index definitions, and migration path are in `task.yaml`.
 
 ## 8. Architecture Decisions
 
