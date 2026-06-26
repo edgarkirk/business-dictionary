@@ -48,8 +48,9 @@ class DictionaryControllerTest {
 
     @Test
     void creates_term_successfully() throws Exception {
+        BusinessDictionaryEntry entry = stubEntry("API", "Application Programming Interface");
         when(dictionaryService.createTerm("API", "Application Programming Interface"))
-                .thenReturn(stubEntry("API", "Application Programming Interface"));
+                .thenReturn(entry);
 
         mockMvc.perform(post(BASE)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -117,8 +118,9 @@ class DictionaryControllerTest {
 
     @Test
     void get_term_returns_200_with_term_details() throws Exception {
+        BusinessDictionaryEntry entry = stubEntry("API", "Application Programming Interface");
         when(dictionaryService.getTerm("API"))
-                .thenReturn(stubEntry("API", "Application Programming Interface"));
+                .thenReturn(entry);
 
         mockMvc.perform(get(BASE + "/API"))
                 .andExpect(status().isOk())
@@ -140,8 +142,9 @@ class DictionaryControllerTest {
 
     @Test
     void update_definition_returns_200_with_updated_term() throws Exception {
+        BusinessDictionaryEntry entry = stubEntry("API", "Updated Definition");
         when(dictionaryService.updateDefinition("API", "Updated Definition"))
-                .thenReturn(stubEntry("API", "Updated Definition"));
+                .thenReturn(entry);
 
         mockMvc.perform(put(BASE + "/API")
                         .contentType(MediaType.APPLICATION_JSON)
