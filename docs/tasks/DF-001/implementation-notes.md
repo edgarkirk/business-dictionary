@@ -76,3 +76,26 @@
 **Deviations:** None — implementation matches ARCHITECTURE.md layer contracts exactly.
 
 **Known gaps:** Acceptance tests (10 failures) remain red — they require the controller layer. Service tests: `Tests run: 10, Failures: 0, Errors: 0` — GREEN confirmed.
+
+---
+
+## Layer: controller
+
+**What you implemented:**
+- `api/request/CreateTermRequest.java` — immutable record DTO; `@NotBlank @Size(max=100)` on `term`, `@NotBlank @Size(max=1000)` on `definition`; annotated with `@Schema` for OpenAPI docs.
+- `api/request/UpdateTermRequest.java` — immutable record DTO; `@NotBlank @Size(max=1000)` on `definition`.
+- `api/response/TermResponse.java` — immutable record DTO; exposes `id`, `term`, `definition`, `createdAt`, `updatedAt`.
+- `api/response/ErrorResponse.java` — immutable record DTO; `code` and `message` fields.
+- `api/DictionaryController.java` — `@RestController @Validated @RequestMapping("/api/v1/dictionary/terms")`; constructor-injected `DictionaryService`; `POST /terms` (201), `GET /terms/{term}` (200), `PUT /terms/{term}` (200); delegates entirely to service; maps entity to `TermResponse` in a private `toResponse` helper; OpenAPI `@Tag` + `@Operation` annotations.
+- `config/GlobalExceptionHandler.java` — `@RestControllerAdvice`; maps `TermNotFoundException` → 404, `DuplicateTermException` → 409, `MethodArgumentNotValidException` → 400; all responses use `ErrorResponse`.
+- `ArchitectureTest.java` — 3 ArchUnit tests verifying: controllers don't access repositories, services don't depend on controllers, repositories don't depend on services or controllers.
+- `api/DictionaryControllerTest.java` — 12 `@WebMvcTest(DictionaryController.class)` tests with `@MockBean DictionaryService`; covers all happy-path and error-path scenarios for all 3 endpoints.
+
+**Key decisions:**
+- `@WebMvcTest` does not load `JpaAuditingConfig` (it's a plain `@Configuration`, not a web-layer bean) — no JPA metamodel crash.
+- `ReflectionTestUtils.setField` used in tests to populate `id`, `createdAt`, `updatedAt` on entity stubs returned by mocked service, since auditing only runs during a real JPA flush.
+- `GlobalExceptionHandler` placed in `config` package to keep it with other cross-cutting configuration per ARCHITECTURE.md.
+
+**Deviations:** None — all endpoints match ARCHITECTURE.md section 6 exactly; all constraints and business rules from REQUIREMENTS.md are enforced.
+
+**Known gaps:** None. Final build result: `Tests run: 51, Failures: 0, Errors: 0` — GREEN confirmed. All 12 acceptance tests pass.
