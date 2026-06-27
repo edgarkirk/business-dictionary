@@ -56,3 +56,23 @@
 **Deviations:** None.
 
 **Known gaps:** Acceptance tests (10 failures) remain red — require service and controller layers. Repository tests: `Tests run: 7, Failures: 0, Errors: 0` — GREEN confirmed.
+
+---
+
+## Layer: service
+
+**What you implemented:**
+- `application/exception/TermNotFoundException.java` — thrown when a term lookup or update finds no matching entry; maps to HTTP 404 in the upcoming controller advice.
+- `application/exception/DuplicateTermException.java` — thrown when a create request conflicts with an existing normalized term; maps to HTTP 409.
+- `application/DictionaryService.java` — service interface declaring `create`, `findByTerm`, and `update` operations returning `BusinessDictionaryEntry`; follows DIP so controllers depend on the interface, not the impl.
+- `application/DictionaryServiceImpl.java` — `@Service @Transactional(readOnly = true)` implementation; `create` and `update` override with `@Transactional`; term normalization (`toLowerCase()`) happens here before every repository call.
+- `application/DictionaryServiceTest.java` — 10 `@ExtendWith(MockitoExtension.class)` unit tests covering: successful create, duplicate detection with mixed casing, normalized-term persistence, case-insensitive find (found + not found), and case-insensitive update (success + not found).
+
+**Key decisions:**
+- Term normalization (`term.toLowerCase()`) is owned exclusively by the service layer; neither the controller nor the repository performs it.
+- `DictionaryServiceImpl` is package-private — only the `DictionaryService` interface is part of the public API of the `application` package.
+- `update` calls `repository.save(entry)` after mutation to ensure `@LastModifiedDate` is updated by the auditing listener on flush.
+
+**Deviations:** None — implementation matches ARCHITECTURE.md layer contracts exactly.
+
+**Known gaps:** Acceptance tests (10 failures) remain red — they require the controller layer. Service tests: `Tests run: 10, Failures: 0, Errors: 0` — GREEN confirmed.
