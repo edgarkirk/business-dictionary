@@ -1,0 +1,12 @@
+package com.epam.businessdictionary.application;
+
+import com.epam.businessdictionary.domain.BusinessDictionaryEntry;
+
+public interface DictionaryService {
+
+    BusinessDictionaryEntry create(String term, String definition);
+
+    BusinessDictionaryEntry findByTerm(String term);
+
+    BusinessDictionaryEntry update(String term, String definition);
+}
