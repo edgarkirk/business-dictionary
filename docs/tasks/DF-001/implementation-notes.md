@@ -41,3 +41,18 @@
 
 **Known gaps:** Acceptance tests (10 failures) remain red at this layer — they require the full stack (repository, service, controller). Entity tests: `Tests run: 7, Failures: 0, Errors: 0` — GREEN confirmed.
 
+---
+
+## Layer: persistence/repository
+
+**What you implemented:**
+- `persistence/BusinessDictionaryEntryRepository.java` — Spring Data JPA interface extending `JpaRepository<BusinessDictionaryEntry, UUID>`; declares `findByNormalizedTerm(String)` → `Optional<BusinessDictionaryEntry>` for case-insensitive lookup, and `existsByNormalizedTerm(String)` → `boolean` for duplicate-check in the service layer.
+- `persistence/BusinessDictionaryEntryRepositoryTest.java` — 7 `@DataJpaTest` tests: `findByNormalizedTerm` (found / not found), `existsByNormalizedTerm` (true / false), `save` sets both audit timestamps, duplicate `normalized_term` throws `DataIntegrityViolationException`, and `createdAt` is unchanged after `updateDefinition`.
+
+**Key decisions:**
+- `existsByNormalizedTerm` added alongside `findByNormalizedTerm`; lets the service issue a cheap existence check for 409-conflict detection without loading the full entity.
+- Test for `createdAt` immutability reloads the entity from DB after the initial save (via `entityManager.clear()` + `entityManager.find()`) before capturing `originalCreatedAt`; this ensures both sides of the equality assertion share H2's microsecond precision rather than comparing in-memory nanoseconds against a DB-truncated value.
+
+**Deviations:** None.
+
+**Known gaps:** Acceptance tests (10 failures) remain red — require service and controller layers. Repository tests: `Tests run: 7, Failures: 0, Errors: 0` — GREEN confirmed.
