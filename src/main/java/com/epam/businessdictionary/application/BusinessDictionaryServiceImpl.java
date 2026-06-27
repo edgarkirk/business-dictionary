@@ -1,5 +1,7 @@
 package com.epam.businessdictionary.application;
 
+import com.epam.businessdictionary.application.exception.DuplicateTermException;
+import com.epam.businessdictionary.application.exception.TermNotFoundException;
 import com.epam.businessdictionary.domain.BusinessDictionaryEntry;
 import com.epam.businessdictionary.persistence.BusinessDictionaryRepository;
 import org.springframework.stereotype.Service;
@@ -18,17 +20,25 @@ class BusinessDictionaryServiceImpl implements BusinessDictionaryService {
     @Override
     @Transactional
     public BusinessDictionaryEntry create(String term, String definition) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        String normalizedTerm = term.toLowerCase();
+        if (repository.existsByNormalizedTerm(normalizedTerm)) {
+            throw new DuplicateTermException(term);
+        }
+        return repository.save(BusinessDictionaryEntry.of(term, definition));
     }
 
     @Override
     public BusinessDictionaryEntry findByTerm(String term) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        return repository.findByNormalizedTerm(term.toLowerCase())
+                .orElseThrow(() -> new TermNotFoundException(term));
     }
 
     @Override
     @Transactional
     public BusinessDictionaryEntry updateDefinition(String term, String definition) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        BusinessDictionaryEntry entry = repository.findByNormalizedTerm(term.toLowerCase())
+                .orElseThrow(() -> new TermNotFoundException(term));
+        entry.updateDefinition(definition);
+        return repository.save(entry);
     }
 }
