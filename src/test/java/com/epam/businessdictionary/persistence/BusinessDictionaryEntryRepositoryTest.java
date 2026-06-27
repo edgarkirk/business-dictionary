@@ -79,14 +79,18 @@ class BusinessDictionaryEntryRepositoryTest {
     @Test
     void created_at_unchanged_after_definition_update() {
         BusinessDictionaryEntry entry = new BusinessDictionaryEntry("Agile", "agile", "Iterative development");
-        BusinessDictionaryEntry saved = repository.saveAndFlush(entry);
-        var originalCreatedAt = saved.getCreatedAt();
+        repository.saveAndFlush(entry);
+        entityManager.clear();
 
-        saved.updateDefinition("Iterative and incremental development methodology");
+        // Reload from DB so originalCreatedAt has DB-precision (microseconds, not nanoseconds)
+        BusinessDictionaryEntry loaded = entityManager.find(BusinessDictionaryEntry.class, entry.getId());
+        var originalCreatedAt = loaded.getCreatedAt();
+
+        loaded.updateDefinition("Iterative and incremental development methodology");
         entityManager.flush();
-        entityManager.refresh(saved);
+        entityManager.refresh(loaded);
 
-        assertThat(saved.getCreatedAt()).isEqualTo(originalCreatedAt);
-        assertThat(saved.getUpdatedAt()).isNotNull();
+        assertThat(loaded.getCreatedAt()).isEqualTo(originalCreatedAt);
+        assertThat(loaded.getUpdatedAt()).isNotNull();
     }
 }
