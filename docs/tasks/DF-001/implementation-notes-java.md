@@ -61,3 +61,25 @@
 **Deviations:** None from ARCHITECTURE.md.
 
 **Known gaps:** None — repository layer is complete and fully tested.
+
+> **Token usage for repository layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
+
+---
+
+## Layer: service
+
+**What you implemented:**
+- `application/DictionaryService.java` — interface declaring three methods: `create(String, String)`, `findByTerm(String)`, `updateDefinition(String, String)`.
+- `application/DictionaryServiceImpl.java` — `@Service @Transactional(readOnly = true)` implementation; `create` and `updateDefinition` override with `@Transactional`; all methods normalize the term to lowercase before calling `findByNormalizedTerm`; constructor injection of `BusinessDictionaryRepository`.
+- `application/exception/TermAlreadyExistsException.java` — `RuntimeException` thrown by `create` when a term already exists (case-insensitively); maps to HTTP 409 at the controller-advice layer.
+- `application/exception/TermNotFoundException.java` — `RuntimeException` thrown by `findByTerm` and `updateDefinition` when no entry is found; maps to HTTP 404 at the controller-advice layer.
+- `application/DictionaryServiceTest.java` — 7 `@ExtendWith(MockitoExtension.class)` unit tests: `create` happy path and duplicate, `findByTerm` happy path and not found, `updateDefinition` happy path and not found, plus a dedicated case-normalization test for `create`.
+
+**Key decisions:**
+- Duplicate check reuses `findByNormalizedTerm` (already provided by the repository) rather than adding a separate `existsByNormalizedTerm` method, keeping the repository interface minimal.
+- `updateDefinition` mutates the entity in place via `entry.updateDefinition(definition)` and then calls `repository.save(entry)`, so JPA auditing updates `updatedAt` on flush.
+- Exceptions carry the original (non-normalized) term in their message for human-readable error output.
+
+**Deviations:** None from ARCHITECTURE.md.
+
+**Known gaps:** Acceptance tests remain RED until the controller layer is implemented.
