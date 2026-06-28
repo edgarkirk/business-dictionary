@@ -85,3 +85,27 @@
 **Known gaps:** Acceptance tests remain RED until the controller layer is implemented.
 
 > **Token usage for service layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
+
+---
+
+## Layer: controller
+
+**What you implemented:**
+- `api/DictionaryController.java` — `@RestController @Validated` mapped to `/api/v1/dictionary/terms`; three endpoints: `POST /terms` (201), `GET /terms/{term}` (200/404), `PUT /terms/{term}` (200/400/404); constructor injection of `DictionaryService`; delegates to service and maps result via `TermResponse.from()`.
+- `api/request/CreateTermRequest.java` — immutable record with `@NotBlank @Size(max=100) String term` and `@NotBlank @Size(max=1000) String definition`.
+- `api/request/UpdateTermRequest.java` — immutable record with `@NotBlank @Size(max=1000) String definition`.
+- `api/response/TermResponse.java` — immutable record (id, term, definition, createdAt, updatedAt) with `from(BusinessDictionaryEntry)` factory that truncates timestamps to microsecond precision.
+- `api/response/ErrorResponse.java` — immutable record (code, message) for all error responses.
+- `config/GlobalExceptionHandler.java` — `@RestControllerAdvice` mapping `TermNotFoundException` → 404, `TermAlreadyExistsException` → 409, `MethodArgumentNotValidException` → 400; each returns an `ErrorResponse`.
+- `api/DictionaryControllerTest.java` — 16 `@WebMvcTest` slice tests covering all endpoints and error paths; mocks `DictionaryService` with `@MockBean`.
+- `ArchitectureTest.java` — 3 ArchUnit tests (mandatory per `standards.md`): controllers must not reach repositories directly, services must not depend on controllers, domain must not depend on api/application/config.
+- `src/test/resources/application.yaml` — changed `ddl-auto: none` → `create-drop` so `@SpringBootTest` acceptance tests can build the H2 schema without Flyway.
+
+**Key decisions:**
+- `TermResponse.from()` truncates `Instant` values to microsecond precision via `truncatedTo(ChronoUnit.MICROS)`. This is required because the JVM-precision `Instant` returned by JPA auditing after `save()` has nanosecond precision, while H2 (and PostgreSQL `TIMESTAMP WITH TIME ZONE`) stores only microseconds. Without truncation the acceptance test comparing `createdAt` across create/update responses fails due to precision mismatch.
+- `GlobalExceptionHandler` is placed in the `config` package per the `task.yaml` package definition ("JPA auditing, exception handling, and cross-cutting configuration"). It is a `@RestControllerAdvice` and is automatically picked up by `@WebMvcTest` without explicit `@Import`.
+- `@WebMvcTest` does NOT import `JpaAuditingConfig` — that bean is not web-layer related and importing it would cause a "JPA metamodel must not be empty" error.
+
+**Deviations:** None from ARCHITECTURE.md.
+
+**Known gaps:** None — all 35 unit tests and all 18 acceptance tests pass.
