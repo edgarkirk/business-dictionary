@@ -93,3 +93,26 @@
 - Acceptance tests remain RED (12 of 14 fail) — controller layer not yet implemented.
 
 > **Token usage for service layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
+
+---
+
+## Layer: controller
+
+**What you implemented:**
+- `api/request/CreateTermRequest.java` — public record; fields `term` (`@NotBlank @Size(max=100)`) and `definition` (`@NotBlank @Size(max=1000)`).
+- `api/request/UpdateTermRequest.java` — public record; field `definition` (`@NotBlank @Size(max=1000)`).
+- `api/response/TermResponse.java` — public record with `id`, `term`, `definition`, `createdAt`, `updatedAt`; static factory `from(BusinessDictionaryTerm)`.
+- `api/response/ErrorResponse.java` — public record with `code` and `message` fields.
+- `api/DictionaryController.java` — package-private `@RestController @Validated`; maps `POST /api/v1/dictionary/terms` (201), `GET /terms/{term}` (200), `PUT /terms/{term}` (200); delegates to `BusinessDictionaryService` via constructor injection.
+- `config/GlobalExceptionHandler.java` — package-private `@RestControllerAdvice`; maps `TermNotFoundException` → 404, `DuplicateTermException` → 409, `MethodArgumentNotValidException` → 400.
+- `api/DictionaryControllerTest.java` — 12 `@WebMvcTest(DictionaryController.class)` tests covering all happy paths, all error status codes, and all validation constraints.
+- `ArchitectureTest.java` — 3 ArchUnit rules: controllers don't access repositories, services don't depend on controllers, repositories don't depend on services or controllers.
+
+**Key decisions:**
+- `GlobalExceptionHandler` placed in `config` package per task.yaml package purpose definition ("exception handling and cross-cutting configuration"); it is auto-detected by `@WebMvcTest` because `@RestControllerAdvice` is a web-layer component type.
+- `@AnalyzeClasses(importOptions = ImportOption.DoNotIncludeTests.class)` on `ArchitectureTest` prevents false positives from test classes accessing production internals across packages (per standards.md Pitfall 6).
+- Request DTOs declared `public` (not package-private) because they reside in sub-packages (`api.request`, `api.response`) that are accessed from the `api` package; inter-package access requires public visibility.
+
+**Deviations:** None — endpoints, base path, HTTP codes, and field names match ARCHITECTURE.md exactly.
+
+**Known gaps:** None — all 48 tests pass (14 acceptance + 12 controller + 8 service + 6 repository + 5 domain + 3 arch); all acceptance criteria from REQUIREMENTS.md are satisfied.
