@@ -12,7 +12,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -41,6 +45,9 @@ class DictionaryControllerTest {
     @Test
     void creates_term_successfully_returns_201() throws Exception {
         BusinessDictionaryEntry entry = new BusinessDictionaryEntry("API", "Application Programming Interface");
+        ReflectionTestUtils.setField(entry, "id", UUID.randomUUID());
+        ReflectionTestUtils.setField(entry, "createdAt", Instant.now());
+        ReflectionTestUtils.setField(entry, "updatedAt", Instant.now());
         when(dictionaryService.create("API", "Application Programming Interface")).thenReturn(entry);
 
         mockMvc.perform(post(BASE_URL)
@@ -134,6 +141,9 @@ class DictionaryControllerTest {
     @Test
     void reads_existing_term_returns_200() throws Exception {
         BusinessDictionaryEntry entry = new BusinessDictionaryEntry("API", "Application Programming Interface");
+        ReflectionTestUtils.setField(entry, "id", UUID.randomUUID());
+        ReflectionTestUtils.setField(entry, "createdAt", Instant.now());
+        ReflectionTestUtils.setField(entry, "updatedAt", Instant.now());
         when(dictionaryService.findByTerm("API")).thenReturn(entry);
 
         mockMvc.perform(get(BASE_URL + "/API"))
