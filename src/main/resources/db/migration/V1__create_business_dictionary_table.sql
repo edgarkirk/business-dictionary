@@ -3,8 +3,8 @@ CREATE TABLE business_dictionary (
     term            VARCHAR(100) NOT NULL,
     normalized_term VARCHAR(100) NOT NULL,
     definition      VARCHAR(1000) NOT NULL,
-    created_at      TIMESTAMP    NOT NULL,
-    updated_at      TIMESTAMP    NOT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE    NOT NULL,
+    updated_at      TIMESTAMP WITH TIME ZONE    NOT NULL,
     CONSTRAINT pk_business_dictionary PRIMARY KEY (id)
 );
 

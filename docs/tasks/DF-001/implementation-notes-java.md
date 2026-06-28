@@ -33,3 +33,17 @@
 **Known gaps:**
 - No pagination on list endpoint (not in spec — GET by single term only).
 - No authentication/authorization (not in scope for DF-001).
+
+---
+
+## Layer: full-implementation fix
+
+**What you implemented:**
+- `src/main/resources/db/migration/V1__create_business_dictionary_table.sql` — changed `created_at TIMESTAMP` and `updated_at TIMESTAMP` to `TIMESTAMP WITH TIME ZONE` to match ARCHITECTURE.md requirement for timezone-aware audit fields.
+
+**Key decisions:**
+- Minimal single-file change; no other files touched. H2 correctly maps `TIMESTAMP WITH TIME ZONE` → `timestamp(6) with time zone` in DDL (confirmed in test output). All 36 tests remain green.
+
+**Deviations:** None.
+
+**Known gaps:** None introduced by this fix.
