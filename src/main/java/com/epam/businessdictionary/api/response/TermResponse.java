@@ -4,6 +4,7 @@ import com.epam.businessdictionary.domain.BusinessDictionaryEntry;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 public record TermResponse(
@@ -18,7 +19,11 @@ public record TermResponse(
                 entry.getId(),
                 entry.getTerm(),
                 entry.getDefinition(),
-                entry.getCreatedAt(),
-                entry.getUpdatedAt());
+                truncate(entry.getCreatedAt()),
+                truncate(entry.getUpdatedAt()));
+    }
+
+    private static Instant truncate(Instant instant) {
+        return instant != null ? instant.truncatedTo(ChronoUnit.MICROS) : null;
     }
 }
