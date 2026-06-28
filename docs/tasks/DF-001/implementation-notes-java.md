@@ -46,3 +46,5 @@
 **Known gaps:**
 - Flyway migration is PostgreSQL-only (uses `TIMESTAMP WITH TIME ZONE`); H2 test profile keeps `flyway.enabled=false` and relies on `ddl-auto=create-drop`, which is safe because H2 2.x with `MODE=PostgreSQL` handles `OffsetDateTime` correctly via Hibernate dialect.
 - Acceptance tests remain in RED (12 of 14 fail) as expected — controllers, services, and repositories are not yet implemented.
+
+> **Token usage for entity/domain layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
