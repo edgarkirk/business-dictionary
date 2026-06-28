@@ -83,3 +83,5 @@
 **Deviations:** None from ARCHITECTURE.md.
 
 **Known gaps:** Acceptance tests remain RED until the controller layer is implemented.
+
+> **Token usage for service layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
