@@ -116,3 +116,5 @@
 **Deviations:** None — endpoints, base path, HTTP codes, and field names match ARCHITECTURE.md exactly.
 
 **Known gaps:** None — all 48 tests pass (14 acceptance + 12 controller + 8 service + 6 repository + 5 domain + 3 arch); all acceptance criteria from REQUIREMENTS.md are satisfied.
+
+> **Token usage for controller layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
