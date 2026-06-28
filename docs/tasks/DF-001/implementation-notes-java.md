@@ -67,3 +67,24 @@
 
 **Known gaps:** None introduced by this fix.
 
+
+> **Token usage for full-implementation layer**: 940780 input, 24314 output, 879649 cache read, 60877 cache write, 31 LLM calls (retries: 0)
+
+---
+
+## Token Usage Summary
+
+### Per-Layer Breakdown
+
+| Layer | Input | Output | Cache Read | Cache Write | LLM Calls | Retries |
+|-------|------:|-------:|-----------:|------------:|----------:|--------:|
+| full-implementation | 940,780 | 24,314 | 879,649 | 60,877 | 31 | 0 |
+
+### Developer Agent Total
+| Metric | Value |
+|--------|------:|
+| Input tokens | 940,780 |
+| Output tokens | 24,314 |
+| Cache read tokens | 879,649 |
+| Cache write tokens | 60,877 |
+| LLM calls | 31 |
