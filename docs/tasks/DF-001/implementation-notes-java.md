@@ -70,3 +70,24 @@
 - Acceptance tests remain RED (12 of 14 fail) — service and controller layers are not yet implemented.
 
 > **Token usage for repository layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
+
+---
+
+## Layer: service
+
+**What you implemented:**
+- `application/exception/TermNotFoundException.java` — `RuntimeException` thrown when a term lookup finds no match (maps to HTTP 404).
+- `application/exception/DuplicateTermException.java` — `RuntimeException` thrown when a create request conflicts with an existing normalized term (maps to HTTP 409).
+- `application/BusinessDictionaryService.java` — public interface with three methods: `createTerm`, `getTerm`, `updateTerm`.
+- `application/BusinessDictionaryServiceImpl.java` — package-private `@Service @Transactional(readOnly = true)` implementation; write methods annotated with `@Transactional`; constructor injection of repository.
+- `application/BusinessDictionaryServiceTest.java` — 8 Mockito unit tests covering happy paths and all typed exception paths for each method.
+
+**Key decisions:**
+- All lookups normalize the input via `term.toLowerCase()` before calling `findByNormalizedTerm`, so case-insensitivity is enforced uniformly in the service layer.
+- `BusinessDictionaryServiceImpl` is package-private (no `public` modifier) — only the `BusinessDictionaryService` interface is public, enforcing DIP.
+- `updateTerm` calls `repository.save(entity)` after `entity.updateDefinition(definition)` to ensure `@LastModifiedDate` is triggered by JPA auditing.
+
+**Deviations:** None.
+
+**Known gaps:**
+- Acceptance tests remain RED (12 of 14 fail) — controller layer not yet implemented.
