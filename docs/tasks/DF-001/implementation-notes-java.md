@@ -22,3 +22,5 @@
 **Known gaps:**
 - Flyway is disabled in the test profile; the persistence layer must re-enable it (or use `spring.flyway.locations` pointing at an H2-compatible migration) once the `V1__create_business_dictionary_table.sql` migration file is in place.
 - `returns_404_for_missing_term` and `returns_404_when_updating_nonexistent_term` pass in RED state because Spring returns 404 for unmapped routes; they will continue to pass correctly once real endpoint handlers are implemented.
+
+> **Token usage for acceptance layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
