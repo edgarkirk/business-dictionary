@@ -21,3 +21,5 @@
 **Deviations:** None — no production classes were created.
 
 **Known gaps:** Tests for AC-03/AC-05 that involve creating a term first will fail at setup in RED because the POST endpoint does not exist. This is intentional and correct for the RED phase.
+
+> **Token usage for acceptance layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)

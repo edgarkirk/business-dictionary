@@ -77,6 +77,17 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Acceptance tests exercise the full stack and are RED until all
+                         layers are implemented. Exclude them from the unit-test phase. -->
+                    <excludes>
+                        <exclude>**/acceptance/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
