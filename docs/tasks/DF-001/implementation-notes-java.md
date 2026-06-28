@@ -28,3 +28,24 @@
 **Known gaps:**
 - No OpenAPI `@Operation`/`@Tag` annotations added (standards.md recommends them but they are not required by `task.yaml`'s `definition_of_done`)
 - Production deployment requires a real PostgreSQL datasource to be configured via environment variables / external config; the H2 config in `application.yaml` is test-only
+
+> **Token usage for full-implementation layer**: 2160456 input, 44521 output, 2032164 cache read, 127846 cache write, 55 LLM calls (retries: 0)
+
+---
+
+## Token Usage Summary
+
+### Per-Layer Breakdown
+
+| Layer | Input | Output | Cache Read | Cache Write | LLM Calls | Retries |
+|-------|------:|-------:|-----------:|------------:|----------:|--------:|
+| full-implementation | 2,160,456 | 44,521 | 2,032,164 | 127,846 | 55 | 0 |
+
+### Developer Agent Total
+| Metric | Value |
+|--------|------:|
+| Input tokens | 2,160,456 |
+| Output tokens | 44,521 |
+| Cache read tokens | 2,032,164 |
+| Cache write tokens | 127,846 |
+| LLM calls | 55 |
