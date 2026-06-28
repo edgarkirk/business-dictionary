@@ -226,4 +226,19 @@ class DictionaryControllerTest {
                                 Map.of("definition", "a".repeat(1001)))))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void timestamps_in_response_are_truncated_to_microsecond_precision() throws Exception {
+        BusinessDictionaryEntry entry = new BusinessDictionaryEntry("Precision", "Precision test");
+        Instant withNanos = Instant.parse("2024-01-01T00:00:00.123456789Z");
+        ReflectionTestUtils.setField(entry, "id", UUID.randomUUID());
+        ReflectionTestUtils.setField(entry, "createdAt", withNanos);
+        ReflectionTestUtils.setField(entry, "updatedAt", withNanos);
+        when(dictionaryService.findByTerm("Precision")).thenReturn(entry);
+
+        mockMvc.perform(get(BASE_URL + "/Precision"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.createdAt").value("2024-01-01T00:00:00.123456Z"))
+                .andExpect(jsonPath("$.updatedAt").value("2024-01-01T00:00:00.123456Z"));
+    }
 }
