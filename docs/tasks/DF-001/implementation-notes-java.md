@@ -68,3 +68,5 @@
 
 **Known gaps:**
 - Acceptance tests remain RED (12 of 14 fail) — service and controller layers are not yet implemented.
+
+> **Token usage for repository layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
