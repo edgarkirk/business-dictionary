@@ -68,15 +68,17 @@ class BusinessDictionaryTermRepositoryTest {
 
     @Test
     void created_at_is_unchanged_and_definition_persisted_after_update() {
-        var term = repository.saveAndFlush(
-                new BusinessDictionaryTerm("Framework", "A structured foundation for development"));
-        var originalCreatedAt = term.getCreatedAt();
+        repository.saveAndFlush(new BusinessDictionaryTerm("Framework", "A structured foundation for development"));
+
+        // Reload from DB so originalCreatedAt has the same DB-truncated precision as later comparisons.
+        entityManager.clear();
+        var loaded = repository.findByNormalizedTerm("framework").orElseThrow();
+        var originalCreatedAt = loaded.getCreatedAt();
+
+        loaded.updateDefinition("An opinionated set of libraries and tools for development");
+        repository.saveAndFlush(loaded);
 
         entityManager.clear();
-
-        var reloaded = repository.findByNormalizedTerm("framework").orElseThrow();
-        reloaded.updateDefinition("An opinionated set of libraries and tools for development");
-        repository.saveAndFlush(reloaded);
 
         var updated = repository.findByNormalizedTerm("framework").orElseThrow();
         assertThat(updated.getCreatedAt()).isEqualTo(originalCreatedAt);
