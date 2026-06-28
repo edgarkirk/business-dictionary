@@ -48,3 +48,23 @@
 - Acceptance tests remain in RED (12 of 14 fail) as expected — controllers, services, and repositories are not yet implemented.
 
 > **Token usage for entity/domain layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
+
+---
+
+## Layer: repository
+
+**What you implemented:**
+- `BusinessDictionaryTermRepository.java` — Spring Data JPA interface extending `JpaRepository<BusinessDictionaryTerm, UUID>` with one derived query method: `findByNormalizedTerm(String)` returning `Optional<BusinessDictionaryTerm>`.
+- `JpaAuditingConfig.java` (modified) — added a `DateTimeProvider` bean (`offsetDateTimeProvider`) returning `OffsetDateTime.now()` and referenced it via `@EnableJpaAuditing(dateTimeProviderRef = "offsetDateTimeProvider")`.
+- `BusinessDictionaryTermRepositoryTest.java` — 6 `@DataJpaTest` tests: save + find by normalized term, empty result for unknown term, lookup is case-sensitive to stored normalized form, duplicate normalized term throws `DataIntegrityViolationException`, auditing fields set after persist, `createdAt` unchanged and definition updated after mutation.
+
+**Key decisions:**
+- Single custom query method `findByNormalizedTerm` derived from the field name — no custom JPQL needed; callers (service layer) are responsible for lowercasing the input before calling this method.
+- `@Import(JpaAuditingConfig.class)` added explicitly to the test class for clarity; `@DataJpaTest` may pick it up automatically but explicit import removes ambiguity.
+- `entityManager.clear()` called after each `saveAndFlush` in the update test to bypass the Hibernate L1 cache and verify DB-persisted values.
+
+**Deviations:**
+- `JpaAuditingConfig` was modified (previous layer) to add a `DateTimeProvider` that returns `OffsetDateTime`. This was required to fix a Spring Data auditing incompatibility: the default `TemporalDateTimeProvider` provides `LocalDateTime`, which cannot be auto-converted to `OffsetDateTime` in H2. This change is backward-compatible with PostgreSQL in production.
+
+**Known gaps:**
+- Acceptance tests remain RED (12 of 14 fail) — service and controller layers are not yet implemented.
