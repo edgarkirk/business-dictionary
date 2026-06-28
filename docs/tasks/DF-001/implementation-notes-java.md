@@ -47,3 +47,23 @@
 **Deviations:** None.
 
 **Known gaps:** None introduced by this fix.
+
+---
+
+## Layer: full-implementation fix #2 (Critic findings)
+
+**What you implemented:**
+- `api/DictionaryController.java` — added `public` modifier (was package-private)
+- `application/DictionaryServiceImpl.java` — added `public` modifier (was package-private)
+- `config/GlobalExceptionHandler.java` — added `public` modifier (was package-private)
+- `config/JpaAuditingConfig.java` — added `auditingDateTimeProvider` bean (`DateTimeProvider`) that truncates `Instant.now()` to microsecond precision; wired via `@EnableJpaAuditing(dateTimeProviderRef = "auditingDateTimeProvider")`
+
+**Key decisions:**
+- `BusinessTermRepository` and `JpaAuditingConfig` were already public — no change needed for those findings.
+- Flyway test finding was a false positive: H2 2.x supports all SQL in `V1__create_business_dictionary_table.sql` (`UUID`, `TIMESTAMP WITH TIME ZONE`, unique index), so `spring.flyway.enabled: true` is correct and was left unchanged.
+- The microsecond `DateTimeProvider` fixes `ac05_update_preserves_created_at_and_changes_updated_at`: Spring Data auditing now writes microsecond-precision `Instant` values, matching H2 `TIMESTAMP WITH TIME ZONE` storage precision and eliminating the 1-µs rounding mismatch between the create response (in-memory) and update response (DB-read).
+
+**Deviations:** None.
+
+**Known gaps:** None introduced by this fix.
+

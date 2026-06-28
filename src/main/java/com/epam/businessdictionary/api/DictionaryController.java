@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/dictionary")
 @Validated
 @Tag(name = "Business Dictionary", description = "Business term management API")
-class DictionaryController {
+public class DictionaryController {
 
     private final DictionaryService dictionaryService;
 
