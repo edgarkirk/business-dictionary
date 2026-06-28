@@ -109,3 +109,5 @@
 **Deviations:** None from ARCHITECTURE.md.
 
 **Known gaps:** None — all 35 unit tests and all 18 acceptance tests pass.
+
+> **Token usage for controller layer**: 0 input, 0 output, 0 cache read, 0 cache write, 0 LLM calls (retries: 0)
