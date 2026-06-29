@@ -24,3 +24,24 @@
 **Known gaps:**
 - No DELETE endpoint (not in scope per REQUIREMENTS.md).
 - Production `application.yaml` datasource credentials are placeholders; should be externalised via environment variables in deployment.
+
+> **Token usage for full-implementation layer**: 2262052 input, 48350 output, 2127436 cache read, 134212 cache write, 50 LLM calls (retries: 0)
+
+---
+
+## Token Usage Summary
+
+### Per-Layer Breakdown
+
+| Layer | Input | Output | Cache Read | Cache Write | LLM Calls | Retries |
+|-------|------:|-------:|-----------:|------------:|----------:|--------:|
+| full-implementation | 2,262,052 | 48,350 | 2,127,436 | 134,212 | 50 | 0 |
+
+### Developer Agent Total
+| Metric | Value |
+|--------|------:|
+| Input tokens | 2,262,052 |
+| Output tokens | 48,350 |
+| Cache read tokens | 2,127,436 |
+| Cache write tokens | 134,212 |
+| LLM calls | 50 |
