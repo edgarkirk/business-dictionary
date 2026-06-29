@@ -24,3 +24,24 @@
 **Deviations:** None. All ARCHITECTURE.md decisions followed as specified.
 
 **Known gaps:** No `GET /api/v1/dictionary/terms` (list all) endpoint — not in REQUIREMENTS.md. No pagination support added; not required by spec.
+
+> **Token usage for full-implementation layer**: 1695490 input, 28870 output, 1604563 cache read, 90539 cache write, 48 LLM calls (retries: 0)
+
+---
+
+## Token Usage Summary
+
+### Per-Layer Breakdown
+
+| Layer | Input | Output | Cache Read | Cache Write | LLM Calls | Retries |
+|-------|------:|-------:|-----------:|------------:|----------:|--------:|
+| full-implementation | 1,695,490 | 28,870 | 1,604,563 | 90,539 | 48 | 0 |
+
+### Developer Agent Total
+| Metric | Value |
+|--------|------:|
+| Input tokens | 1,695,490 |
+| Output tokens | 28,870 |
+| Cache read tokens | 1,604,563 |
+| Cache write tokens | 90,539 |
+| LLM calls | 48 |
