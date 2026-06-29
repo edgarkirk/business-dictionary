@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/businessdictionary}
+    username: ${DATASOURCE_USERNAME:postgres}
+    password: ${DATASOURCE_PASSWORD:postgres}
+  jpa:
+    open-in-view: false
+  flyway:
+    enabled: true
