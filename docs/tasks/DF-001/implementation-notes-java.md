@@ -25,3 +25,24 @@
 **Known gaps:**
 - No paginated `GET /terms` list endpoint (not in REQUIREMENTS.md).
 - Flyway `WARN` about H2 2.3.x being newer than supported 2.2.x — cosmetic only; all migrations run successfully.
+
+> **Token usage for full-implementation layer**: 2148675 input, 33272 output, 2013919 cache read, 134360 cache write, 49 LLM calls (retries: 0)
+
+---
+
+## Token Usage Summary
+
+### Per-Layer Breakdown
+
+| Layer | Input | Output | Cache Read | Cache Write | LLM Calls | Retries |
+|-------|------:|-------:|-----------:|------------:|----------:|--------:|
+| full-implementation | 2,148,675 | 33,272 | 2,013,919 | 134,360 | 49 | 0 |
+
+### Developer Agent Total
+| Metric | Value |
+|--------|------:|
+| Input tokens | 2,148,675 |
+| Output tokens | 33,272 |
+| Cache read tokens | 2,013,919 |
+| Cache write tokens | 134,360 |
+| LLM calls | 49 |
