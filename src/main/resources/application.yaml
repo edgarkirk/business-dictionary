@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: business-dictionary
+  datasource:
+    url: jdbc:postgresql://localhost:5432/businessdictionary
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    open-in-view: false
+  flyway:
+    enabled: true
