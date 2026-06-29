@@ -1,8 +1,9 @@
-schema_version: "1.3"
+schema_version: "1.4"
 
 task:
   id: "DF-001"
   type: "greenfield_backend_feature"
+  mode: "greenfield"
   title: "Implement Business Dictionary Service API"
   priority: "medium"
 
@@ -28,9 +29,6 @@ repository_structure:
     - "src/main/resources/db/migration"
   required_files:
     - "pom.xml"
-    - "mvnw"
-    - "mvnw.cmd"
-    - "README.md"
 
 scope:
   allowed_paths:
@@ -38,7 +36,6 @@ scope:
     - "src/test/java/**"
     - "src/main/resources/**"
     - "pom.xml"
-    - "README.md"
   forbidden_paths:
     - "target/**"
     - "mvnw"
@@ -64,7 +61,6 @@ technology:
   test_frameworks:
     - "JUnit 5"
     - "Mockito"
-    - "Testcontainers"
 
 implementation_contract:
   package_root: "com.epam.businessdictionary"
@@ -111,10 +107,14 @@ business_rules:
   - "updatedAt is updated on every modification."
   - "Do not implement delete or list endpoints."
 
+review_focus:
+  - "requirements"
+  - "api_contract"
+  - "db_migration"
+
 quality_gates:
-  build_command: "./mvnw clean verify"
-  test_command: "./mvnw test"
-  static_analysis_command: "./mvnw checkstyle:check spotbugs:check --no-transfer-progress -q"
+  build_command: "mvn clean verify"
+  test_command: "mvn test"
 
   required_checks:
     - "compilation"
@@ -123,12 +123,17 @@ quality_gates:
     - "repository_or_integration_tests"
 
 execution:
-  complexity: simple          # simple | standard | strict
+  complexity: simple
   max_iterations: 75
-  max_llm_calls: 40           # hard cap — fail if exceeded
-  max_wall_minutes: 30        # wall-clock timeout for entire run
+  max_llm_calls: 40
+  max_wall_minutes: 30
   timeout_minutes: 45
+  max_critic_rounds: 2
   open_pull_request: true
+
+dependencies: []
+
+conflict_policy: "rebase"
 
 constraints:
   - "Do not implement delete endpoint."
@@ -138,7 +143,7 @@ constraints:
   - "Do not modify deployment, Kubernetes, Helm, or CI files."
   - "All exception classes must reside in the application.exception package."
 
-definition_of_done:
+acceptance:
   - "Implementation matches ARCHITECTURE.md."
   - "All acceptance criteria from REQUIREMENTS.md are satisfied."
   - "All REST endpoints required by the requirements are implemented under api_contract.base_path."
@@ -148,4 +153,3 @@ definition_of_done:
   - "Tests are implemented and passing."
   - "Build command passes."
   - "No forbidden paths are modified."
-  - "Pull request is opened."
