@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: business-dictionary
+  datasource:
+    url: jdbc:postgresql://localhost:5432/businessdictionary
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+  flyway:
+    enabled: true
