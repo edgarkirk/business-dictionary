@@ -26,3 +26,24 @@
 **Deviations:** None — implementation matches ARCHITECTURE.md and task.yaml exactly.
 
 **Known gaps:** None. All three endpoints, all validation rules, all AC criteria covered.
+
+> **Token usage for full-implementation layer**: 2086225 input, 38899 output, 1957900 cache read, 127961 cache write, 45 LLM calls (retries: 0)
+
+---
+
+## Token Usage Summary
+
+### Per-Layer Breakdown
+
+| Layer | Input | Output | Cache Read | Cache Write | LLM Calls | Retries |
+|-------|------:|-------:|-----------:|------------:|----------:|--------:|
+| full-implementation | 2,086,225 | 38,899 | 1,957,900 | 127,961 | 45 | 0 |
+
+### Developer Agent Total
+| Metric | Value |
+|--------|------:|
+| Input tokens | 2,086,225 |
+| Output tokens | 38,899 |
+| Cache read tokens | 1,957,900 |
+| Cache write tokens | 127,961 |
+| LLM calls | 45 |
